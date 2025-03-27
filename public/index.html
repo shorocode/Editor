@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ویرایشگر کد آنلاین پیشرفته | HTML, CSS, JS</title>
+    <meta name="description" content="ویرایشگر کد آنلاین پیشرفته با قابلیت ذخیره سازی، تم تاریک، پیش‌نمایش زنده و پشتیبانی از فریمورک‌ها">
+    <meta name="keywords" content="ویرایشگر کد, آنلاین ادیتور, اجرای کد, HTML, CSS, JavaScript">
+    <meta name="author" content="Code Editor Team">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" as="style">
+    
+    <!-- Inline Critical CSS -->
+    <style>
+        :root {
+            --primary-color: #4a9eff;
+            --secondary-color: #805ad5;
+            --success-color: #48bb78;
+            --danger-color: #f56565;
+            --warning-color: #ed8936;
+            --info-color: #4299e1;
+            --light-bg: #f7fafc;
+            --dark-bg: #1a202c;
+            --border-radius: 8px;
+            --transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--light-bg);
+            color: #1a202c;
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 1rem;
+            transition: var(--transition);
+        }
+        
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        /* Only include critical above-the-fold styles */
+    </style>
+    
+    <!-- Defer Non-Critical CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css" media="print" onload="this.media='all'">
+</head>
+<body>
+    <!-- Main App Container -->
+    <div class="container" id="app">
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="header-title">
+                <i class="fas fa-code" aria-hidden="true"></i>
+                <h1>ویرایشگر کد آنلاین پیشرفته</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-icon" id="toggleTheme" title="تغییر تم" aria-label="تغییر تم">
+                    <i class="fas fa-moon" aria-hidden="true"></i>
+                </button>
+                <button class="btn btn-icon" id="fullscreenBtn" title="حالت تمام صفحه" aria-label="حالت تمام صفحه">
+                    <i class="fas fa-expand" aria-hidden="true"></i>
+                </button>
+                <button class="btn btn-icon" id="settingsBtn" title="تنظیمات" aria-label="تنظیمات">
+                    <i class="fas fa-cog" aria-hidden="true"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Main Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-section" id="main-actions">
+                <button class="btn btn-primary" id="runBtn">
+                    <i class="fas fa-play" aria-hidden="true"></i> اجرا
+                </button>
+                <button class="btn btn-success" id="saveBtn">
+                    <i class="fas fa-save" aria-hidden="true"></i> ذخیره
+                </button>
+                <button class="btn btn-info" id="downloadBtn">
+                    <i class="fas fa-download" aria-hidden="true"></i> دانلود
+                </button>
+                <button class="btn btn-danger" id="clearBtn">
+                    <i class="fas fa-trash" aria-hidden="true"></i> پاک کردن
+                </button>
+            </div>
+            
+            <div class="toolbar-section" id="secondary-actions">
+                <button class="btn btn-warning" id="formatBtn">
+                    <i class="fas fa-indent" aria-hidden="true"></i> فرمت کد
+                </button>
+                <button class="btn" id="autoRunBtn">
+                    <i class="fas fa-sync-alt" aria-hidden="true"></i> اجرای خودکار
+                </button>
+                <button class="btn" id="packageManagerBtn">
+                    <i class="fas fa-box-open" aria-hidden="true"></i> مدیریت پکیج
+                </button>
+            </div>
+        </div>
+
+        <!-- Framework Selector -->
+        <div class="framework-selector" id="frameworkSelector" role="tablist">
+            <button class="framework-btn active" data-framework="" role="tab" aria-selected="true">
+                <i class="fas fa-code" aria-hidden="true"></i> بدون فریمورک
+            </button>
+            <button class="framework-btn" data-framework="react" role="tab" aria-selected="false">
+                <i class="fab fa-react" aria-hidden="true"></i> React
+            </button>
+            <button class="framework-btn" data-framework="vue" role="tab" aria-selected="false">
+                <i class="fab fa-vuejs" aria-hidden="true"></i> Vue
+            </button>
+            <button class="framework-btn" data-framework="angular" role="tab" aria-selected="false">
+                <i class="fab fa-angular" aria-hidden="true"></i> Angular
+            </button>
+        </div>
+
+        <!-- Editors Grid -->
+        <div class="editor-container" id="editorContainer">
+            <!-- HTML Editor -->
+            <div class="editor-wrapper">
+                <div class="editor-header">
+                    <div class="editor-title">
+                        <i class="fab fa-html5 html-icon" aria-hidden="true"></i>
+                        <span>HTML</span>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="btn btn-sm" id="clearHtmlBtn" title="پاک کردن HTML" aria-label="پاک کردن HTML">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                        </button>
+                        <button class="btn btn-sm" id="htmlSettingsBtn" title="تنظیمات HTML" aria-label="تنظیمات HTML">
+                            <i class="fas fa-cog" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                <textarea id="htmlCode" aria-label="ویرایشگر کد HTML"></textarea>
+            </div>
+            
+            <!-- CSS Editor -->
+            <div class="editor-wrapper">
+                <div class="editor-header">
+                    <div class="editor-title">
+                        <i class="fab fa-css3-alt css-icon" aria-hidden="true"></i>
+                        <span>CSS</span>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="btn btn-sm" id="clearCssBtn" title="پاک کردن CSS" aria-label="پاک کردن CSS">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                        </button>
+                        <button class="btn btn-sm" id="cssSettingsBtn" title="تنظیمات CSS" aria-label="تنظیمات CSS">
+                            <i class="fas fa-cog" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                <textarea id="cssCode" aria-label="ویرایشگر کد CSS"></textarea>
+            </div>
+            
+            <!-- JS Editor -->
+            <div class="editor-wrapper">
+                <div class="editor-header">
+                    <div class="editor-title">
+                        <i class="fab fa-js-square js-icon" aria-hidden="true"></i>
+                        <span>JavaScript</span>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="btn btn-sm" id="clearJsBtn" title="پاک کردن JavaScript" aria-label="پاک کردن JavaScript">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                        </button>
+                        <button class="btn btn-sm" id="jsSettingsBtn" title="تنظیمات JavaScript" aria-label="تنظیمات JavaScript">
+                            <i class="fas fa-cog" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                <textarea id="jsCode" aria-label="ویرایشگر کد JavaScript"></textarea>
+            </div>
+        </div>
+
+        <!-- Output Preview -->
+        <div class="output-container">
+            <div class="output-header">
+                <div class="output-title">
+                    <i class="fas fa-eye" aria-hidden="true"></i>
+                    <span>پیش‌نمایش</span>
+                </div>
+                <div class="output-actions">
+                    <button class="btn btn-sm btn-primary" id="refreshBtn" title="بازسازی خروجی" aria-label="بازسازی خروجی">
+                        <i class="fas fa-sync-alt" aria-hidden="true"></i> بازسازی
+                    </button>
+                    <button class="btn btn-sm btn-danger" id="stopBtn" title="توقف اجرا" aria-label="توقف اجرا">
+                        <i class="fas fa-stop" aria-hidden="true"></i> توقف
+                    </button>
+                    <button class="btn btn-sm" id="newTabBtn" title="باز کردن در تب جدید" aria-label="باز کردن در تب جدید">
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i> تب جدید
+                    </button>
+                    <button class="btn btn-sm" id="responsiveBtn" title="حالت ریسپانسیو" aria-label="حالت ریسپانسیو">
+                        <i class="fas fa-mobile-alt" aria-hidden="true"></i> حالت ریسپانسیو
+                    </button>
+                </div>
+            </div>
+            <iframe id="output" title="پیش‌نمایش خروجی کد" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="toggle-container">
+                <span>حالت تاریک</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="darkModeToggle" aria-label="حالت تاریک">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div id="statusMessage" aria-live="polite">آماده</div>
+            <div class="app-version">نسخه 1.0.0</div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle" hidden>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="settingsModalTitle">تنظیمات ویرایشگر</h3>
+                <button class="btn btn-icon" id="closeSettingsBtn" aria-label="بستن پنجره تنظیمات">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="settingsModalBody">
+                <!-- Settings content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript with defer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify-css.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify-html.min.js" defer></script>
+    
+    <!-- Main App Script -->
+    <script src="js/main.js" type="module" defer></script>
+    
+    <!-- Fallback for non-JS users -->
+    <noscript>
+        <style>
+            .container { display: none !important; }
+        </style>
+        <div class="nojs-warning">
+            <h2>جاوااسکریپت غیرفعال است!</h2>
+            <p>برای استفاده از ویرایشگر کد، لطفاً جاوااسکریپت مرورگر خود را فعال کنید.</p>
+        </div>
+    </noscript>
+</body>
+</html>
